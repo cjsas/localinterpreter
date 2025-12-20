@@ -10,10 +10,18 @@ model = AutoModelForCausalLM.from_pretrained(
     torch_dtype="auto",
     device_map="auto"
 )
+system = """
+You are a translation engine.
+Translate the user input into Chinese exactly.
+Do NOT answer questions, give explanations, or add any content.
+If the input contains a question, translate it as a question.
+Output ONLY the translated text.
+"""
 
 # prepare the model input
 prompt = "Give me a short introduction to large language model."
 messages = [
+    {"role": "system", "content": system},
     {"role": "user", "content": prompt}
 ]
 text = tokenizer.apply_chat_template(
@@ -24,15 +32,16 @@ text = tokenizer.apply_chat_template(
 model_inputs = tokenizer([text], return_tensors="pt").to(model.device)
 
 # conduct text completion
-start_time = time.perf_counter()
+start_time = time.time()
 generated_ids = model.generate(
     **model_inputs,
     max_new_tokens=16384
 )
-end_time = time.perf_counter()
+end_time = time.time()
+generation_time = end_time - start_time
 output_ids = generated_ids[0][len(model_inputs.input_ids[0]):].tolist() 
 
 content = tokenizer.decode(output_ids, skip_special_tokens=True)
 
+print(f"Generation time: {generation_time:.2f} seconds")
 print("content:", content)
-print(f"Time taken: {end_time - start_time:.2f} seconds")

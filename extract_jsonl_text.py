@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import json
 import re
+import os
 
 def extract_jsonl_text(jsonl_file_path):
     """Extract transcribed text from JSONL file"""
@@ -48,6 +49,19 @@ def main():
     
     try:
         segments = extract_jsonl_text(jsonl_file)
+        
+        # Create output directory for segments
+        output_dir = "segments_outputs"
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Save each segment to a separate file
+        for segment in segments:
+            segment_filename = f"{output_dir}/{segment['id']}.wav.transcription.txt"
+            with open(segment_filename, 'w', encoding='utf-8') as seg_file:
+                seg_file.write(segment['text'])
+            print(f"Saved: {segment_filename}")
+        
+        print(f"\n=== Total: {len(segments)} segments saved to {output_dir}/ ===")
         
         # Print all transcriptions in order
         for segment in segments:
